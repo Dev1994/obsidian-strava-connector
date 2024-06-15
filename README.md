@@ -28,11 +28,3 @@ To get started with the Strava Connector for Obsidian, follow these steps:
 4. Start syncing your activities and enjoy viewing your Strava metrics directly within your Obsidian notes!
 
 For detailed installation instructions and configuration options, please refer to the official documentation.
-
-## Contributing
-
-Contributions to the Strava Connector for Obsidian are welcome! Whether it's reporting a bug, suggesting new features, or contributing to the code, we appreciate your help in making this plugin even better for the community.
-
-## License
-
-This plugin is released under the MIT License. See the LICENSE file for more details.
