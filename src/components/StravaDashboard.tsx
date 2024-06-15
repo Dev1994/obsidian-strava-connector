@@ -4,7 +4,7 @@ import axios from "axios";
 /**
  * Represents a React component that displays a random joke fetched from an API.
  */
-export const ReactView = () => {
+export const StravaDashboard = () => {
 
     /**
      * Represents a query for fetching a random joke.

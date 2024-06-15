@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
-import { ReactView } from "./components/ReactView";
+import { StravaDashboard } from "./components/StravaDashboard";
 import { AppContext } from "./contexts/app-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
@@ -34,7 +34,7 @@ export class RootView extends ItemView {
 				<QueryClientProvider client={queryClient}>
 					<ReactQueryDevtools initialIsOpen={false} />
 					<AppContext.Provider value={this.app}>
-						<ReactView />
+						<StravaDashboard />
 					</AppContext.Provider>
 				</QueryClientProvider>
 			</StrictMode>
