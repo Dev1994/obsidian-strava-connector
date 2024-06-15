@@ -8,9 +8,10 @@
     "allowJs": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
+    "jsx": "react-jsx",
     "importHelpers": true,
     "isolatedModules": true,
-	"strictNullChecks": true,
+    "strictNullChecks": true,
     "lib": [
       "DOM",
       "ES5",

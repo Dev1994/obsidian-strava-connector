@@ -1,96 +1,38 @@
-# Obsidian Sample Plugin
+# Strava Connector for Obsidian
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+The Strava Connector for Obsidian is a plugin designed to seamlessly integrate Strava activities and metrics into your Obsidian notes. This plugin is perfect for athletes, fitness enthusiasts, and anyone interested in tracking their physical activities alongside their daily notes, journal entries, or project management tasks within Obsidian.
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+## Features
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+- **Activity Sync:** Automatically syncs your Strava activities into your Obsidian vault, allowing you to view and manage your workouts, runs, bike rides, and more directly from Obsidian.
+- **Metrics Visualization:** Displays key metrics from your Strava activities, such as distance, pace, elevation gain, and heart rate, in a visually appealing format within your notes.
+- **Customizable Templates:** Use or customize templates for different types of activities to automatically format your synced data in a way that best suits your note-taking style.
+- **Manual Entry Support:** For activities not recorded on Strava, the plugin allows manual entry of activities directly into Obsidian, ensuring you can track all your physical efforts in one place.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+## Technologies Used
 
-## First time developing plugins?
+- **Obsidian API:** Utilizes the Obsidian plugin API for seamless integration within the Obsidian ecosystem, enabling the plugin to interact with your notes and vault.
+- **Strava API:** Leverages the Strava API to fetch activity data, ensuring accurate and up-to-date information is always available.
+- **JavaScript:** The core functionality of the plugin is developed in JavaScript, making it compatible with the Obsidian plugin architecture.
+- **CSS:** Custom CSS is used for styling the activity data and metrics within your notes, ensuring a pleasant and customizable user experience.
+- **React Integration:** Incorporates React to enhance the UI components within Obsidian, providing a more dynamic and responsive user experience.
+- **TanStack Query:** Utilizes TanStack Query for efficient data fetching, caching, and synchronization of Strava activities, ensuring a smooth and fast user experience.
 
-Quick starting guide for new plugin devs:
+## Getting Started
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+To get started with the Strava Connector for Obsidian, follow these steps:
 
-## Releasing new releases
+1. Ensure you have Obsidian installed and that you have an active Strava account.
+2. Download the Strava Connector plugin from the Obsidian community plugins list.
+3. Install the plugin in Obsidian and configure it by connecting it to your Strava account.
+4. Start syncing your activities and enjoy viewing your Strava metrics directly within your Obsidian notes!
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+For detailed installation instructions and configuration options, please refer to the official documentation.
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+## Contributing
 
-## Adding your plugin to the community plugin list
+Contributions to the Strava Connector for Obsidian are welcome! Whether it's reporting a bug, suggesting new features, or contributing to the code, we appreciate your help in making this plugin even better for the community.
 
-- Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+## License
 
-## How to use
-
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
-
-## Manually installing the plugin
-
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
-```
-
-If you have multiple URLs, you can also do:
-
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
-```
-
-## API Documentation
-
-See https://github.com/obsidianmd/obsidian-api
+This plugin is released under the MIT License. See the LICENSE file for more details.
