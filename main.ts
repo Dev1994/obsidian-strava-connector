@@ -49,13 +49,21 @@ export default class StravaConnectorPlugin extends Plugin {
 						if (!this.app.vault.getFolderByPath("Strava/Athlete-Statistics")) {
 							await this.app.vault.createFolder("Strava/Athlete-Statistics");
 
-							const currentWeek = DateTime.utc().toISOWeekDate();
+							const currentWeek = DateTime.utc().toFormat("yyyy-'W'WW");
 							if (!this.app.vault.getFileByPath(`Strava/Athlete-Statistics/${currentWeek}`)) {
 								try {
-									const mdCodeBlock = `\`\`\`json\n${JSON.stringify(athleteStats, null, 4)}\n\`\`\``;
-									await this.app.vault.create(`Strava/Athlete-Statistics/${currentWeek}.md`, mdCodeBlock);
+									// Convert cycling data to YAML format for frontmatter
+									const yamlFrontmatter = `---
+title: Cycling
+4_weeks_ride_total: ${Math.round(athleteStats.recent_ride_totals.distance / 1000)}
+---
+									`;
+
+									// Combine frontmatter and original JSON data
+									const mdContent = `${yamlFrontmatter}\n\`\`\`json\n${JSON.stringify(athleteStats, null, 4)}\n\`\`\``;
+									await this.app.vault.create(`Strava/Athlete-Statistics/${currentWeek}.md`, mdContent);
 								} catch (error) {
-									new Notice("Failed to create markdown file");
+									new Notice("Failed to create markdown file: ");
 								}
 							}
 						}
