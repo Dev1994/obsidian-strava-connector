@@ -2,6 +2,7 @@ import { addIcon, Notice, Plugin, TFolder, WorkspaceLeaf } from 'obsidian';
 import { RootView, VIEW_TYPE_ROOT } from './src/RootView';
 import { stravaService } from 'src/services/strava-service';
 import { DateTime } from "luxon";
+import { AthleteStats } from 'src/entities/interfaces/iathlete-stats';
 
 interface StravaConnectorSettings {
 	mySetting: string;
@@ -43,31 +44,7 @@ export default class StravaConnectorPlugin extends Plugin {
 				new Notice('Started synchronizing Strava activities');
 				try {
 					const athleteStats = await stravaService.getAthleteStats("GET_YOUR_OWN_TOKEN", 11111111);
-					if (!this.app.vault.getFolderByPath("Strava")) {
-						await this.app.vault.createFolder("Strava");
-
-						if (!this.app.vault.getFolderByPath("Strava/Athlete-Statistics")) {
-							await this.app.vault.createFolder("Strava/Athlete-Statistics");
-
-							const currentWeek = DateTime.utc().toFormat("yyyy-'W'WW");
-							if (!this.app.vault.getFileByPath(`Strava/Athlete-Statistics/${currentWeek}`)) {
-								try {
-									// Convert cycling data to YAML format for frontmatter
-									const yamlFrontmatter = `---
-title: Cycling
-4_weeks_ride_total: ${Math.round(athleteStats.recent_ride_totals.distance / 1000)}
----
-									`;
-
-									// Combine frontmatter and original JSON data
-									const mdContent = `${yamlFrontmatter}\n\`\`\`json\n${JSON.stringify(athleteStats, null, 4)}\n\`\`\``;
-									await this.app.vault.create(`Strava/Athlete-Statistics/${currentWeek}.md`, mdContent);
-								} catch (error) {
-									new Notice("Failed to create markdown file: ");
-								}
-							}
-						}
-					}
+					await this.createOrUpdateAthleteStatisticsFile(athleteStats);
 					new Notice("Finished synchronizing Strava activities");
 				} catch (error) {
 					new Notice("Failed to synchronize Strava stats");
@@ -75,6 +52,47 @@ title: Cycling
 			}
 		);
 		ribbonIconEl.addClass('my-plugin-ribbon-class');
+	}
+
+	private async ensureFolderStructureExists() {
+		// Ensure the "Strava" folder exists
+		if (!this.app.vault.getFolderByPath("Strava")) {
+			await this.app.vault.createFolder("Strava");
+		}
+
+		// Ensure the "Strava/Athlete-Statistics" folder exists
+		if (!this.app.vault.getFolderByPath("Strava/Athlete-Statistics")) {
+			await this.app.vault.createFolder("Strava/Athlete-Statistics");
+		}
+	}
+
+	private async createOrUpdateAthleteStatisticsFile(athleteStats: AthleteStats) {
+		try {
+			await this.ensureFolderStructureExists();
+
+			const currentWeek = DateTime.utc().toFormat("yyyy-'W'WW");
+			const filePath = `Strava/Athlete-Statistics/${currentWeek}.md`;
+
+			// Convert cycling data to YAML format for frontmatter
+			const yamlFrontmatter = `---
+title: Cycling
+4_weeks_ride_total: ${Math.round(athleteStats.recent_ride_totals.distance / 1000)}
+testing_new_content: 123
+again_smile: test
+---
+`;
+			// Combine frontmatter and original JSON data
+			const mdContent = `${yamlFrontmatter}\n\`\`\`json\n${JSON.stringify(athleteStats, null, 4)}\n\`\`\``;
+
+			const file = this.app.vault.getFileByPath(filePath);
+			if (!file) {
+				await this.app.vault.create(filePath, mdContent);
+			} else {
+				await this.app.vault.modify(file, mdContent);
+			}
+		} catch (error) {
+			new Notice("Failed to create or update markdown file: ");
+		}
 	}
 
 	onunload() {
