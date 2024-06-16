@@ -1,4 +1,4 @@
-interface AthleteData {
+export interface AthleteData {
     id: number;
     username: string | null; // Updated to allow null
     resource_state: number;

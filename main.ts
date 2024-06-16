@@ -1,5 +1,7 @@
-import { Plugin, WorkspaceLeaf } from 'obsidian';
+import { addIcon, Notice, Plugin, TFolder, WorkspaceLeaf } from 'obsidian';
 import { RootView, VIEW_TYPE_ROOT } from './src/RootView';
+import { stravaService } from 'src/services/strava-service';
+import { DateTime } from "luxon";
 
 interface StravaConnectorSettings {
 	mySetting: string;
@@ -16,6 +18,13 @@ export default class StravaConnectorPlugin extends Plugin {
 	settings: StravaConnectorSettings;
 
 	async onload() {
+		addIcon(
+			'stravaIcon',
+			`<path
+				d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"
+				transform="scale(4)"  />`
+		)
+
 		// Register the root view
 		this.registerView(
 			VIEW_TYPE_ROOT,
@@ -26,6 +35,38 @@ export default class StravaConnectorPlugin extends Plugin {
 		this.addRibbonIcon("activity", "Strava Data", () => {
 			this.activateView();
 		});
+
+		const ribbonIconEl = this.addRibbonIcon(
+			'stravaIcon',
+			'Synchronize Strava activities',
+			async (evt: MouseEvent) => {
+				new Notice('Started synchronizing Strava activities');
+				try {
+					const athleteStats = await stravaService.getAthleteStats("GET_YOUR_OWN_TOKEN", 11111111);
+					if (!this.app.vault.getFolderByPath("Strava")) {
+						await this.app.vault.createFolder("Strava");
+
+						if (!this.app.vault.getFolderByPath("Strava/Athlete-Statistics")) {
+							await this.app.vault.createFolder("Strava/Athlete-Statistics");
+
+							const currentWeek = DateTime.utc().toISOWeekDate();
+							if (!this.app.vault.getFileByPath(`Strava/Athlete-Statistics/${currentWeek}`)) {
+								try {
+									const mdCodeBlock = `\`\`\`json\n${JSON.stringify(athleteStats, null, 4)}\n\`\`\``;
+									await this.app.vault.create(`Strava/Athlete-Statistics/${currentWeek}.md`, mdCodeBlock);
+								} catch (error) {
+									new Notice("Failed to create markdown file");
+								}
+							}
+						}
+					}
+					new Notice("Finished synchronizing Strava activities");
+				} catch (error) {
+					new Notice("Failed to synchronize Strava stats");
+				}
+			}
+		);
+		ribbonIconEl.addClass('my-plugin-ribbon-class');
 	}
 
 	onunload() {

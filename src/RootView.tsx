@@ -24,7 +24,7 @@ export class RootView extends ItemView {
 	}
 
 	getDisplayText() {
-		return "Root";
+		return "Strava Dashboard";
 	}
 
 	async onOpen() {
