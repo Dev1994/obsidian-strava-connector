@@ -3,6 +3,7 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
 import { StravaDashboard } from "./components/StravaDashboard";
 import { AppContext } from "./contexts/app-context";
+import { SettingsContext } from "./contexts/settings-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
@@ -14,9 +15,11 @@ export const VIEW_TYPE_ROOT = "root-view";
  */
 export class RootView extends ItemView {
 	root: Root | null = null;
+	settings: any;
 
-	constructor(leaf: WorkspaceLeaf) {
+	constructor(leaf: WorkspaceLeaf, settings: any) {
 		super(leaf);
+		this.settings = settings;
 	}
 
 	getViewType() {
@@ -34,7 +37,9 @@ export class RootView extends ItemView {
 				<QueryClientProvider client={queryClient}>
 					<ReactQueryDevtools initialIsOpen={false} />
 					<AppContext.Provider value={this.app}>
-						<StravaDashboard />
+						<SettingsContext.Provider value={this.settings} >
+							<StravaDashboard />
+						</SettingsContext.Provider>
 					</AppContext.Provider>
 				</QueryClientProvider>
 			</StrictMode>

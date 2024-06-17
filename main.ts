@@ -1,22 +1,39 @@
-import { addIcon, Notice, Plugin, TFolder, WorkspaceLeaf } from 'obsidian';
+import { addIcon, Notice, Plugin, WorkspaceLeaf } from 'obsidian';
 import { RootView, VIEW_TYPE_ROOT } from './src/RootView';
-import { stravaService } from 'src/services/strava-service';
 import { DateTime } from "luxon";
 import { AthleteStats } from 'src/entities/interfaces/iathlete-stats';
+import strava, { AuthenticationConfig } from 'strava-v3';
+import { StravaActivitiesSettingTab } from './src/tabs/strava-activities-setting-tab';
+import auth from './src/services/auth-service';
 
-interface StravaConnectorSettings {
-	mySetting: string;
+interface SyncSettings {
+	lastSyncedAt: string
+	activityDetailsRetrievedUntil: string
 }
 
-const DEFAULT_SETTINGS: StravaConnectorSettings = {
-	mySetting: 'default'
+interface StravaActivitiesSettings {
+	authSettings: AuthenticationConfig
+	syncSettings: SyncSettings
+}
+
+const DEFAULT_SETTINGS: StravaActivitiesSettings = {
+	authSettings: {
+		access_token: '',
+		client_id: '',
+		client_secret: '',
+		redirect_uri: 'obsidian://obsidian-strava-connector/callback',
+	},
+	syncSettings: {
+		lastSyncedAt: '', // e.g., '2023-09-14T14:44:56.106Z'
+		activityDetailsRetrievedUntil: '', // e.g., '2023-01-01T14:44:56.106Z'
+	},
 }
 
 /**
  * Represents a plugin that connects to Strava.
  */
 export default class StravaConnectorPlugin extends Plugin {
-	settings: StravaConnectorSettings;
+	settings = DEFAULT_SETTINGS
 
 	async onload() {
 		addIcon(
@@ -26,24 +43,41 @@ export default class StravaConnectorPlugin extends Plugin {
 				transform="scale(4)"  />`
 		)
 
+		await this.loadSettings()
+		this.addSettingTab(new StravaActivitiesSettingTab(this.app, this))
+
 		// Register the root view
 		this.registerView(
 			VIEW_TYPE_ROOT,
-			(leaf) => new RootView(leaf)
+			(leaf) => new RootView(leaf, this.settings)
 		);
 
+		this.registerObsidianProtocolHandler(
+			'obsidian-strava-connector/callback',
+			async (args) => {
+				await auth.OAuthCallback(args)
+			}
+		)
+
 		// Add a ribbon icon to activate the view
-		this.addRibbonIcon("activity", "Strava Data", () => {
+		this.addRibbonIcon("activity", "Strava Dashboard", () => {
 			this.activateView();
 		});
 
+		this.addCommand({
+			id: 'authenticate',
+			name: 'Authenticate with Strava',
+			callback: () => auth.authenticate(this.settings.authSettings),
+		})
+
 		const ribbonIconEl = this.addRibbonIcon(
 			'stravaIcon',
-			'Synchronize Strava activities',
+			'Synchronize Strava',
 			async (evt: MouseEvent) => {
 				new Notice('Started synchronizing Strava activities');
 				try {
-					const athleteStats = await stravaService.getAthleteStats("GET_YOUR_OWN_TOKEN", 11111111);
+					const athlete = await strava.athlete.get({ access_token: this.settings.authSettings.access_token });
+					const athleteStats = await strava.athletes.stats({ id: athlete.id, access_token: this.settings.authSettings.access_token });
 					await this.createOrUpdateAthleteStatisticsFile(athleteStats);
 					new Notice("Finished synchronizing Strava activities");
 				} catch (error) {
@@ -95,10 +129,6 @@ again_smile: test
 		}
 	}
 
-	onunload() {
-		// Perform any necessary cleanup when the plugin is unloaded
-	}
-
 	/**
 	 * Activates the Strava view.
 	 */
@@ -122,17 +152,20 @@ again_smile: test
 		workspace.revealLeaf(leaf!);
 	}
 
-	/**
-	 * Loads the plugin settings.
-	 */
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+	onunload() {
+		this.settings = DEFAULT_SETTINGS
+		this.saveSettings()
 	}
 
-	/**
-	 * Saves the plugin settings.
-	 */
+	async loadSettings() {
+		this.settings = Object.assign(
+			{},
+			DEFAULT_SETTINGS,
+			await this.loadData()
+		)
+	}
+
 	async saveSettings() {
-		await this.saveData(this.settings);
+		await this.saveData(this.settings)
 	}
 }
