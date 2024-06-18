@@ -1,7 +1,7 @@
-import { AthleteData } from "src/entities/interfaces/iathlete-data";
+import { DetailedAthlete } from "strava-types";
 
 interface AthleteProfileProps {
-    data: AthleteData;
+    data: DetailedAthlete;
 }
 
 export const AthleteProfile = ({ data: athlete }: AthleteProfileProps) => {
@@ -10,10 +10,10 @@ export const AthleteProfile = ({ data: athlete }: AthleteProfileProps) => {
             <tbody>
                 <tr className={"athlete-table-cell"}><th>Attribute</th><th>Value</th></tr>
                 {Object.entries(athlete).map(([key, value]) => (
-                  <tr key={key} className={"athlete-table-cell"}>
-                    <td>{key}</td>
-                    <td>{typeof value === 'boolean' ? value ? 'Yes' : 'No' : value}</td>
-                  </tr>
+                    <tr key={key} className={"athlete-table-cell"}>
+                        <td>{key}</td>
+                        <td>{typeof value === 'boolean' ? value ? 'Yes' : 'No' : value}</td>
+                    </tr>
                 ))}
             </tbody>
         </table>

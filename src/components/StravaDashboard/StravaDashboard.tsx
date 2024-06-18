@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { AthleteProfile } from './AthleteProfile/AthleteProfile';
-import { AthleteContext } from 'src/contexts/athlete-context';
+import { AthleteProfile } from "../AthleteProfile/AthleteProfile";
+import { AthleteContext } from '../../contexts/athlete-context';
 import { useContext } from 'react';
-import { SettingsContext } from 'src/contexts/settings-context';
+import { SettingsContext } from '../../contexts/settings-context';
 import strava from 'strava-v3';
 
 /**

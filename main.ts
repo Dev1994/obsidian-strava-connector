@@ -1,10 +1,10 @@
 import { addIcon, Notice, Plugin, WorkspaceLeaf } from 'obsidian';
 import { RootView, VIEW_TYPE_ROOT } from './src/RootView';
 import { DateTime } from "luxon";
-import { AthleteStats } from 'src/entities/interfaces/iathlete-stats';
 import strava, { AuthenticationConfig } from 'strava-v3';
 import { StravaActivitiesSettingTab } from './src/tabs/strava-activities-setting-tab';
-import auth from './src/services/auth-service';
+import auth from "./src/services/auth-service";
+import { SummaryActivity } from "strava-types";
 
 interface SyncSettings {
 	lastSyncedAt: string
@@ -36,13 +36,6 @@ export default class StravaConnectorPlugin extends Plugin {
 	settings = DEFAULT_SETTINGS
 
 	async onload() {
-		addIcon(
-			'stravaIcon',
-			`<path
-				d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"
-				transform="scale(4)"  />`
-		)
-
 		await this.loadSettings()
 		this.addSettingTab(new StravaActivitiesSettingTab(this.app, this))
 
@@ -71,58 +64,76 @@ export default class StravaConnectorPlugin extends Plugin {
 		})
 
 		const ribbonIconEl = this.addRibbonIcon(
-			'stravaIcon',
-			'Synchronize Strava',
+			'refresh-ccw',
+			'Synchronize Current Week Activities',
 			async (evt: MouseEvent) => {
-				new Notice('Started synchronizing Strava activities');
+				new Notice('Synchronizing current week Strava activities...');
 				try {
-					const athlete = await strava.athlete.get({ access_token: this.settings.authSettings.access_token });
-					const athleteStats = await strava.athletes.stats({ id: athlete.id, access_token: this.settings.authSettings.access_token });
-					await this.createOrUpdateAthleteStatisticsFile(athleteStats);
-					new Notice("Finished synchronizing Strava activities");
+					const currentWeekActivities: SummaryActivity[] = await strava.athlete.listActivities(
+						{
+							access_token: this.settings.authSettings.access_token,
+							after: DateTime.utc().startOf("week").toSeconds()
+						});
+
+					if (currentWeekActivities.length === 0) {
+						new Notice("You've not logged any activities this week.");
+						return;
+					}
+
+					await this.createOrUpdateAthleteActivitiesFiles(currentWeekActivities);
+					this.settings.syncSettings.lastSyncedAt = DateTime.utc().toISO();
+					this.saveSettings();
+					new Notice("Successfully synchronized current week Strava activities");
 				} catch (error) {
-					new Notice("Failed to synchronize Strava stats");
+					new Notice("Failed to synchronize Strava activities.");
 				}
 			}
 		);
 		ribbonIconEl.addClass('my-plugin-ribbon-class');
 	}
 
-	private async ensureFolderStructureExists() {
+	private async ensureFolderStructureExists(activityDate: string) {
 		// Ensure the "Strava" folder exists
 		if (!this.app.vault.getFolderByPath("Strava")) {
 			await this.app.vault.createFolder("Strava");
 		}
 
-		// Ensure the "Strava/Athlete-Statistics" folder exists
-		if (!this.app.vault.getFolderByPath("Strava/Athlete-Statistics")) {
-			await this.app.vault.createFolder("Strava/Athlete-Statistics");
+		// Ensure the "Strava/Activities" folder exists
+		if (!this.app.vault.getFolderByPath("Strava/Activities")) {
+			await this.app.vault.createFolder("Strava/Activities");
+		}
+
+		// Ensure the "Strava/Activities/DayOfActivity" folder exists
+		if (!this.app.vault.getFolderByPath(`Strava/Activities/${activityDate}`)) {
+			await this.app.vault.createFolder(`Strava/Activities/${activityDate}`);
 		}
 	}
 
-	private async createOrUpdateAthleteStatisticsFile(athleteStats: AthleteStats) {
+	private async createOrUpdateAthleteActivitiesFiles(currentWeekActivities: SummaryActivity[]) {
 		try {
-			await this.ensureFolderStructureExists();
+			for (const currentActivity of currentWeekActivities) {
+				const activityDate = DateTime.fromISO(currentActivity.start_date).toFormat("dd-MM-yyyy").toString();
+				const filePath = `Strava/Activities/${activityDate}/Summary.md`;
 
-			const currentWeek = DateTime.utc().toFormat("yyyy-'W'WW");
-			const filePath = `Strava/Athlete-Statistics/${currentWeek}.md`;
+				await this.ensureFolderStructureExists(activityDate);
 
-			// Convert cycling data to YAML format for frontmatter
-			const yamlFrontmatter = `---
-title: Cycling
-4_weeks_ride_total: ${Math.round(athleteStats.recent_ride_totals.distance / 1000)}
-testing_new_content: 123
-again_smile: test
+				// Convert cycling data to YAML format for frontmatter
+				const yamlFrontmatter = `---
+title: ${currentActivity.name}
+distance: ${Math.fround(currentActivity.distance / 1000).toFixed(2)}
+date: ${activityDate}
+sport: ${currentActivity.sport_type}
+kudos: ${currentActivity.kudos_count}
 ---
 `;
-			// Combine frontmatter and original JSON data
-			const mdContent = `${yamlFrontmatter}\n\`\`\`json\n${JSON.stringify(athleteStats, null, 4)}\n\`\`\``;
-
-			const file = this.app.vault.getFileByPath(filePath);
-			if (!file) {
-				await this.app.vault.create(filePath, mdContent);
-			} else {
-				await this.app.vault.modify(file, mdContent);
+				// Combine frontmatter and original JSON data
+				const mdContent = `${yamlFrontmatter}\n\`\`\`json\n${JSON.stringify(currentActivity, null, 4)}\n\`\`\``;
+				const file = this.app.vault.getFileByPath(filePath);
+				if (!file) {
+					await this.app.vault.create(filePath, mdContent);
+				} else {
+					await this.app.vault.modify(file, mdContent);
+				}
 			}
 		} catch (error) {
 			new Notice("Failed to create or update markdown file: ");
@@ -144,7 +155,7 @@ again_smile: test
 		} else {
 			// Our view could not be found in the workspace, create a new leaf
 			// in the right sidebar for it
-			leaf = workspace.getRightLeaf(false);
+			leaf = workspace.getLeaf(false);
 			await leaf!.setViewState({ type: VIEW_TYPE_ROOT, active: true });
 		}
 
@@ -153,8 +164,8 @@ again_smile: test
 	}
 
 	onunload() {
-		this.settings = DEFAULT_SETTINGS
-		this.saveSettings()
+		// this.settings = DEFAULT_SETTINGS
+		// this.saveSettings()
 	}
 
 	async loadSettings() {

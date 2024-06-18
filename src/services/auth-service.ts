@@ -1,8 +1,4 @@
-import {
-    default as stravaApi,
-    RateLimiting,
-    AuthenticationConfig,
-} from 'strava-v3'
+import { default as stravaApi, RateLimiting, AuthenticationConfig } from 'strava-v3'
 import { Notice, ObsidianProtocolData } from 'obsidian'
 import { DateTime } from 'luxon'
 
@@ -22,37 +18,7 @@ class Auth {
 
     constructor() { }
 
-    async validateToken() {
-        if (!this.token || !this.token.access_token) {
-            throw Error('Please login first')
-        }
-        const tokenExpiresIn = DateTime.fromSeconds(this.token.expires_at, {
-            zone: 'utc',
-        }).diffNow('seconds')
-        if (tokenExpiresIn.seconds < 10) {
-            const refreshResponse = await stravaApi.oauth.refreshToken(
-                this.token.refresh_token
-            )
-            this.token = Object.assign(this.token, refreshResponse, this.token)
-            this.onTokenUpdated(this.token)
-        }
-    }
-
-    validateUtilization(rateLimiting: RateLimiting) {
-        const usageFraction = rateLimiting.fractionReached()
-        console.log(`Strava API usage fraction reached: ${usageFraction}`)
-
-        // happens when no usage data is available
-        if (isNaN(usageFraction)) return true
-
-        if (usageFraction < 0.8) {
-            return true
-        }
-
-        return false
-    }
-
-    async authenticate(authConfig: AuthenticationConfig) {
+    public async authenticate(authConfig: AuthenticationConfig) {
         try {
             this.authConfig = authConfig
             stravaApi.config(authConfig)
@@ -68,7 +34,7 @@ class Auth {
         }
     }
 
-    async OAuthCallback(args: ObsidianProtocolData) {
+    public async OAuthCallback(args: ObsidianProtocolData) {
         if (args.scope != 'read,activity:read_all') {
             new Notice('Please authorize required permissions.')
             return
@@ -83,7 +49,37 @@ class Auth {
         }
     }
 
-    isSignedIn() {
+    private async validateToken() {
+        if (!this.token || !this.token.access_token) {
+            throw Error('Please login first')
+        }
+        const tokenExpiresIn = DateTime.fromSeconds(this.token.expires_at, {
+            zone: 'utc',
+        }).diffNow('seconds')
+        if (tokenExpiresIn.seconds < 10) {
+            const refreshResponse = await stravaApi.oauth.refreshToken(
+                this.token.refresh_token
+            )
+            this.token = Object.assign(this.token, refreshResponse, this.token)
+            this.onTokenUpdated(this.token)
+        }
+    }
+
+    private validateUtilization(rateLimiting: RateLimiting) {
+        const usageFraction = rateLimiting.fractionReached()
+        console.log(`Strava API usage fraction reached: ${usageFraction}`)
+
+        // happens when no usage data is available
+        if (isNaN(usageFraction)) return true
+
+        if (usageFraction < 0.8) {
+            return true
+        }
+
+        return false
+    }
+
+    private isSignedIn() {
         return (
             this.token && this.token.access_token && this.token.expires_in > 0
         )

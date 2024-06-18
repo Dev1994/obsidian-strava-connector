@@ -1,4 +1,4 @@
 import { createContext } from 'react';
-import { AthleteData } from '../entities/interfaces/iathlete-data';
+import { DetailedAthlete } from 'strava-types';
 
-export const AthleteContext = createContext<AthleteData | undefined>(undefined);
+export const AthleteContext = createContext<DetailedAthlete | undefined>(undefined);

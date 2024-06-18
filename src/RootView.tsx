@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
-import { StravaDashboard } from "./components/StravaDashboard";
+import { StravaDashboard } from "./components/StravaDashboard/StravaDashboard";
 import { AppContext } from "./contexts/app-context";
 import { SettingsContext } from "./contexts/settings-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
