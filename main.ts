@@ -1,10 +1,11 @@
-import { addIcon, Notice, Plugin, WorkspaceLeaf } from 'obsidian';
-import { RootView, VIEW_TYPE_ROOT } from './src/RootView';
+import { Notice, Plugin, WorkspaceLeaf } from "obsidian";
+import { RootView, VIEW_TYPE_ROOT } from "./src/RootView";
 import { DateTime } from "luxon";
-import strava, { AuthenticationConfig } from 'strava-v3';
-import { StravaActivitiesSettingTab } from './src/tabs/strava-activities-setting-tab';
+import { AuthenticationConfig } from "strava-v3";
+import { StravaActivitiesSettingTab } from "./src/tabs/strava-activities-setting-tab";
 import auth from "./src/services/auth-service";
 import { SummaryActivity } from "strava-types";
+import athleteService from "./src/services/athlete-servince";
 
 interface SyncSettings {
 	lastSyncedAt: string
@@ -18,26 +19,26 @@ interface StravaActivitiesSettings {
 
 const DEFAULT_SETTINGS: StravaActivitiesSettings = {
 	authSettings: {
-		access_token: '',
-		client_id: '',
-		client_secret: '',
-		redirect_uri: 'obsidian://obsidian-strava-connector/callback',
+		access_token: "",
+		client_id: "",
+		client_secret: "",
+		redirect_uri: "obsidian://obsidian-strava-connector/callback",
 	},
 	syncSettings: {
-		lastSyncedAt: '', // e.g., '2023-09-14T14:44:56.106Z'
-		activityDetailsRetrievedUntil: '', // e.g., '2023-01-01T14:44:56.106Z'
+		lastSyncedAt: "", // e.g., '2023-09-14T14:44:56.106Z'
+		activityDetailsRetrievedUntil: "", // e.g., '2023-01-01T14:44:56.106Z'
 	},
-}
+};
 
 /**
  * Represents a plugin that connects to Strava.
  */
 export default class StravaConnectorPlugin extends Plugin {
-	settings = DEFAULT_SETTINGS
+	settings = DEFAULT_SETTINGS;
 
 	async onload() {
-		await this.loadSettings()
-		this.addSettingTab(new StravaActivitiesSettingTab(this.app, this))
+		await this.loadSettings();
+		this.addSettingTab(new StravaActivitiesSettingTab(this.app, this));
 
 		// Register the root view
 		this.registerView(
@@ -46,11 +47,11 @@ export default class StravaConnectorPlugin extends Plugin {
 		);
 
 		this.registerObsidianProtocolHandler(
-			'obsidian-strava-connector/callback',
+			"obsidian-strava-connector/callback",
 			async (args) => {
-				await auth.OAuthCallback(args)
+				await auth.OAuthCallback(args);
 			}
-		)
+		);
 
 		// Add a ribbon icon to activate the view
 		this.addRibbonIcon("activity", "Strava Dashboard", () => {
@@ -58,20 +59,19 @@ export default class StravaConnectorPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'authenticate',
-			name: 'Authenticate with Strava',
+			id: "authenticate",
+			name: "Authenticate with Strava",
 			callback: () => auth.authenticate(this.settings.authSettings),
-		})
+		});
 
 		const ribbonIconEl = this.addRibbonIcon(
-			'refresh-ccw',
-			'Synchronize Current Week Activities',
+			"refresh-ccw",
+			"Synchronize Current Week Activities",
 			async (evt: MouseEvent) => {
-				new Notice('Synchronizing current week Strava activities...');
+				new Notice("Synchronizing current week Strava activities...");
 				try {
-					const currentWeekActivities: SummaryActivity[] = await strava.athlete.listActivities(
+					const currentWeekActivities: SummaryActivity[] = await athleteService.getActivities(
 						{
-							access_token: this.settings.authSettings.access_token,
 							after: DateTime.utc().startOf("week").toSeconds()
 						});
 
@@ -86,10 +86,11 @@ export default class StravaConnectorPlugin extends Plugin {
 					new Notice("Successfully synchronized current week Strava activities");
 				} catch (error) {
 					new Notice("Failed to synchronize Strava activities.");
+					console.error(error);
 				}
 			}
 		);
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+		ribbonIconEl.addClass("my-plugin-ribbon-class");
 	}
 
 	private async ensureFolderStructureExists(activityDate: string) {
@@ -173,10 +174,10 @@ kudos: ${currentActivity.kudos_count}
 			{},
 			DEFAULT_SETTINGS,
 			await this.loadData()
-		)
+		);
 	}
 
 	async saveSettings() {
-		await this.saveData(this.settings)
+		await this.saveData(this.settings);
 	}
 }

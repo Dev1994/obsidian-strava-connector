@@ -12,7 +12,7 @@ export const AthleteProfile = ({ data: athlete }: AthleteProfileProps) => {
                 {Object.entries(athlete).map(([key, value]) => (
                     <tr key={key} className={"athlete-table-cell"}>
                         <td>{key}</td>
-                        <td>{typeof value === 'boolean' ? value ? 'Yes' : 'No' : value}</td>
+                        <td>{typeof value === "boolean" ? value ? "Yes" : "No" : value}</td>
                     </tr>
                 ))}
             </tbody>

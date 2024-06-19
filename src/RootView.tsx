@@ -5,9 +5,9 @@ import { StravaDashboard } from "./components/StravaDashboard/StravaDashboard";
 import { AppContext } from "./contexts/app-context";
 import { SettingsContext } from "./contexts/settings-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 export const VIEW_TYPE_ROOT = "root-view";
 
 /**

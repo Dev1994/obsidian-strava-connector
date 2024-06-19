@@ -1,5 +1,5 @@
-import { App } from 'obsidian';
-import { createContext } from 'react';
+import { App } from "obsidian";
+import { createContext } from "react";
 
 /**
  * Context for the Obsidian app.

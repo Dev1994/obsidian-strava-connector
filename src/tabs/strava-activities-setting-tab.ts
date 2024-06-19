@@ -1,26 +1,26 @@
 import StravaConnectorPlugin from "main";
-import { PluginSettingTab, App, Setting, Notice } from "obsidian";
+import { PluginSettingTab, App, Setting } from "obsidian";
 import { StravaApplicationDetailsModal } from "../modals/strava-application-details-modal";
 import auth from "../services/auth-service";
 
 export class StravaActivitiesSettingTab extends PluginSettingTab {
-    plugin: StravaConnectorPlugin
+    plugin: StravaConnectorPlugin;
 
     constructor(app: App, plugin: StravaConnectorPlugin) {
-        super(app, plugin)
-        this.plugin = plugin
+        super(app, plugin);
+        this.plugin = plugin;
     }
 
     display(): void {
-        const { containerEl } = this
-        containerEl.empty()
+        const { containerEl } = this;
+        containerEl.empty();
 
         new Setting(containerEl)
-            .setName('Enter Strava Credentials')
-            .setDesc('Set Strava Credentials')
+            .setName("Enter Strava Credentials")
+            .setDesc("Set Strava Credentials")
             .addButton((button) =>
                 button
-                    .setButtonText('Enter Strava Credentials')
+                    .setButtonText("Enter Strava Credentials")
                     // TODO: set button class
                     .onClick((me) =>
                         new StravaApplicationDetailsModal(
@@ -28,17 +28,17 @@ export class StravaActivitiesSettingTab extends PluginSettingTab {
                             this.plugin
                         ).open()
                     )
-            )
+            );
         new Setting(containerEl)
-            .setName('Authenticate')
-            .setDesc('Authenticate your Strava account')
+            .setName("Authenticate")
+            .setDesc("Authenticate your Strava account")
             .addButton((button) =>
                 button
-                    .setButtonText('Authenticate')
+                    .setButtonText("Authenticate")
                     .onClick(() => {
-                        auth.authenticate(this.plugin.settings.authSettings)
+                        auth.authenticate(this.plugin.settings.authSettings);
                     }
                     )
-            )
+            );
     }
 }

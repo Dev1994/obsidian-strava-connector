@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import { AthleteProfile } from "../AthleteProfile/AthleteProfile";
-import { AthleteContext } from '../../contexts/athlete-context';
-import { useContext } from 'react';
-import { SettingsContext } from '../../contexts/settings-context';
-import strava from 'strava-v3';
+import { AthleteContext } from "../../contexts/athlete-context";
+import { useContext } from "react";
+import { SettingsContext } from "../../contexts/settings-context";
+import strava from "strava-v3";
 
 /**
  * React component that displays the Strava dashboard.
@@ -12,12 +12,12 @@ export const StravaDashboard = () => {
     const settings = useContext(SettingsContext);
 
     const { data: athlete, isLoading, isError } = useQuery({
-        queryKey: ['athlete'],
+        queryKey: ["athlete"],
         queryFn: () => strava.athlete.get({ access_token: settings.authSettings.access_token }),
     });
 
     const { data: stats, isLoading: statsIsLoading, isError: statsIsError } = useQuery({
-        queryKey: ['stats', athlete?.id],
+        queryKey: ["stats", athlete?.id],
         queryFn: () => strava.athletes.stats({ id: athlete.id, access_token: settings.authSettings.access_token }),
         enabled: !!athlete,
     });
